@@ -659,17 +659,17 @@ var PathToolkit = function(options){
         // as loop values
         while (prev !== UNDEF && idx < tkLength){
             curr = tk[idx];
-
+            
             // If we are setting a new value and this token is the last token, this
             // is the point where the new value must be set.
             newValueHere = (change && (idx === tkLastIdx));
-
+            
             // Handle most common simple path scenario first
             if (typeof curr === $STRING){
                 // If we are setting...
                 if (change){
                     // If this is the final token where the new value goes, set it
-                    if (newValueHere){
+                    if (newValueHere && isPrototypePolluted(curr)){
                         context[curr] = newValue;
                         if (context[curr] !== newValue){ return undefined; } // new value failed to set
                     }
@@ -1140,6 +1140,16 @@ var PathToolkit = function(options){
     };
 
     /**
+     * Check if trying to set magic attributes.
+     * @private
+     * @param {String} key 
+     * @returns {Boolean}
+     */
+    var isPrototypePolluted = function(key) {
+        return ['__proto__', 'constructor', 'prototype'].includes(key)
+    }
+
+    /**
      * Get tokenized representation of string keypath.
      * @public
      * @param {String} path Keypath
@@ -1311,8 +1321,8 @@ var PathToolkit = function(options){
         // Path resolution follows the same logic as `get` above, with one difference: `get` will
         // abort by returning the value as soon as it's found. `set` does not abort so the if-else
         // structure is slightly different to dictate when/if the final case should execute.
-        if (typeof path === $STRING){
-            if (opt.useCache && cache[path] && cache[path].simple){
+        if (opt.useCache && cache[path] && cache[path].simple){
+            if (typeof path === $STRING){
                 ref = quickResolveTokenArray(obj, cache[path].t, val);
                 done |= true;
             }
@@ -1325,7 +1335,7 @@ var PathToolkit = function(options){
             ref = quickResolveTokenArray(obj, path.t, val);
             done |= true;
         }
-
+        
         // Path was (probably) a string and it contained complex path characters
         if (!done) {
             if (len > 3){
