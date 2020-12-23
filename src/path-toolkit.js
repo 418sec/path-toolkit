@@ -1146,7 +1146,7 @@ var PathToolkit = function(options){
      * @return {Boolean}
      */
     var isPrototypePolluted = function(key) {
-        return ['__proto__', 'constructor', 'prototype'].includes(key)
+        return ['__proto__', 'constructor', 'prototype'].includes(key);
     }
 
     /**
