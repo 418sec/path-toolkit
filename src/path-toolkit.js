@@ -659,17 +659,17 @@ var PathToolkit = function(options){
         // as loop values
         while (prev !== UNDEF && idx < tkLength){
             curr = tk[idx];
-            
+
             // If we are setting a new value and this token is the last token, this
             // is the point where the new value must be set.
             newValueHere = (change && (idx === tkLastIdx));
-            
+
             // Handle most common simple path scenario first
             if (typeof curr === $STRING){
                 // If we are setting...
                 if (change){
                     // If this is the final token where the new value goes, set it
-                    if (newValueHere && isPrototypePolluted(curr)){
+                    if (newValueHere){
                         context[curr] = newValue;
                         if (context[curr] !== newValue){ return undefined; } // new value failed to set
                     }
@@ -1023,7 +1023,7 @@ var PathToolkit = function(options){
         tk = path.split(propertySeparator);
         opt.useCache && (cache[path] = {t: tk, simple: true});
         tkLength = tk.length;
-        while (obj !== UNDEF && i < tkLength){
+        while (obj !== UNDEF && i < tkLength && !isPrototypePolluted(tk[i])){
             if (tk[i] === ''){ return undefined; }
             else if (change){
                 if (i === tkLength - 1){
@@ -1143,7 +1143,7 @@ var PathToolkit = function(options){
      * Check if trying to set magic attributes.
      * @private
      * @param {String} key 
-     * @returns {Boolean}
+     * @return {Boolean}
      */
     var isPrototypePolluted = function(key) {
         return ['__proto__', 'constructor', 'prototype'].includes(key)
@@ -1321,8 +1321,8 @@ var PathToolkit = function(options){
         // Path resolution follows the same logic as `get` above, with one difference: `get` will
         // abort by returning the value as soon as it's found. `set` does not abort so the if-else
         // structure is slightly different to dictate when/if the final case should execute.
-        if (opt.useCache && cache[path] && cache[path].simple){
-            if (typeof path === $STRING){
+        if (typeof path === $STRING){
+            if (opt.useCache && cache[path] && cache[path].simple){
                 ref = quickResolveTokenArray(obj, cache[path].t, val);
                 done |= true;
             }
@@ -1335,7 +1335,7 @@ var PathToolkit = function(options){
             ref = quickResolveTokenArray(obj, path.t, val);
             done |= true;
         }
-        
+
         // Path was (probably) a string and it contained complex path characters
         if (!done) {
             if (len > 3){
